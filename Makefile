@@ -10,6 +10,7 @@ all:
 	rm -rf ebin;
 	rm -rf rebar.lock;
 	rm -rf *_specs;
+	rm -rf *_container;
 	#INFO: Compile application
 	rm -rf common_include;
 	cp -r ~/erlang/common_include .
@@ -34,6 +35,7 @@ clean:
 	rm -rf ebin;
 	rm -rf rebar.lock;
 	rm -rf *_specs;
+	rm -rf *_container;
 	#INFO: Compile application
 	cp config/rebar.config .;
 	rm -rf common_include;

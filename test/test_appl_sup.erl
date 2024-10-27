@@ -39,9 +39,11 @@ init([]) ->
 		    start=>{host_server,start_link,[]}},
 		  #{id=>application_server,
 		    start=>{application_server,start_link,[]}},
-
 		   #{id=>control_server,
-		    start=>{control_server,start_link,[]}}
+		    start=>{control_server,start_link,[]}},
+
+		  #{id=>test_control_server,
+		    start=>{test_control_server,start_link,[]}}
 		 ],
     {ok, {SupFlags, ChildSpecs}}.
 

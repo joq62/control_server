@@ -28,8 +28,7 @@
 start()->
    
     ok=setup(),
-    ok=test_control_server:start(),
-   
+     
     io:format("Test OK !!! ~p~n",[?MODULE]),
  %   timer:sleep(2000),
  %   init:stop(),
