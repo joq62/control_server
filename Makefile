@@ -10,6 +10,7 @@ all:
 	rm -rf ebin;
 	rm -rf rebar.lock;
 	rm -rf *_specs;
+	rm -rf *_container
 	#INFO: Compile application
 	rm -rf common_include;
 	cp -r ~/erlang/common_include .
@@ -65,7 +66,9 @@ eunit:
 	 -pa _build/default/lib/log/ebin\
 	 -pa _build/default/lib/rd/ebin\
 	 -pa _build/default/lib/common/ebin\
+	 -pa _build/default/lib/host_server/ebin\
+	 -pa _build/default/lib/application_server/ebin\
 	 -pa _build/default/lib/$(a)/ebin\
-	 -sname test_appl\
+	 -sname ctrl\
 	 -run $(m) start\
 	 -setcookie a

@@ -298,10 +298,6 @@ handle_info({timeout,reconciliate}, State) ->
 	UnInstallResult->
 	    ?LOG_NOTICE("Un install result ",[UnInstallResult])
     end,
- 
-    io:format("Do rd  ~p~n",[{?MODULE,?LINE}]),    
-    
-    
     {noreply, State#state{connected=NewSortedConnected,
 			  not_connected=NewSortedNotConnected}};
 	 
