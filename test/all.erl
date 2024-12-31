@@ -37,7 +37,7 @@
 start()->
    
     ok=setup(),
-    ok=test_0(),
+    ok=api_control_test(),
     io:format("Test OK !!! ~p~n",[?MODULE]),
     log_loop([]),
 
@@ -54,10 +54,33 @@ start()->
 %% Description: Based on hosts.config file checks which hosts are avaible
 %% Returns: List({HostId,Ip,SshPort,Uid,Pwd}
 %% --------------------------------------------------------------------
-
-test_0()->
+-define(Needed,[net_kernel,stdlib,logger]).
+api_control_test()->
     io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME,?LINE}]),
-  
+   %% setup will be done by each application
+    ok=service_discovery:config_needed(?Needed),
+    ok=service_discovery:update(),
+    timer:sleep(100),
+
+    %% control api offered
+    {ok,[{logger,'connect@c200',_},
+	 {logger,'connect@c202',_},
+	 {logger,'connect@c50',_},
+	 {net_kernel,'connect@c200',_},
+	 {net_kernel,'connect@c202',_},
+	 {net_kernel,'connect@c50',_}]
+    }=service_discovery:imported(),
+    {ok,[
+	 {net_kernel,'connect@c200',_},
+	 {net_kernel,'connect@c202',_},
+	 {net_kernel,'connect@c50',_}
+	]
+    }=service_discovery:get_all(net_kernel),
+      
+    ['connect@c200',
+     'connect@c202',
+     'connect@c50'
+    ]=connect:connect_status(),
     ok.
 
 %% --------------------------------------------------------------------
