@@ -11,6 +11,7 @@ all:
 	rm -rf rebar.lock;
 	rm -rf *_container;
 	rm -rf tar_dir;
+	rm -rf application_specs;
 	#INFO: Compile application
 	rm -rf common_include;
 	cp -r ~/erlang/common_include .
@@ -34,6 +35,7 @@ clean:
 	rm -rf rebar.lock;
 	rm -rf *_container;
 	rm -rf tar_dir;
+	rm -rf application_specs;
 	#INFO: Compile application
 	rm -rf common_include;
 	cp -r ~/erlang/common_include .
@@ -55,6 +57,7 @@ eunit:
 	rm -rf ebin;
 	rm -rf rebar.lock;
 	rm -rf *_container;
+	rm -rf application_specs;
 #INFO: Creating eunit test code using test_ebin dir;
 	mkdir test_ebin;
 	rm -rf common_include;
@@ -69,6 +72,7 @@ eunit:
 	 -pa _build/default/lib/log/ebin\
 	 -pa _build/default/lib/service_discovery/ebin\
 	 -pa _build/default/lib/connect/ebin\
+	 -pa _build/default/lib/appl_server/ebin\
 	 -pa _build/default/lib/control_server/ebin\
 	 -sname connect\
 	 -run $(m) start\

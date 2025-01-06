@@ -16,11 +16,14 @@
 
 
 %% Change
--define(Appl,"control").
--define(Dir,"control").
-
-
+-define(Appl,"control_server").
+-define(Dir,"control_server").
 -define(LogFilePath,"logs/connect/log.logs/file.1").
+
+
+-define(TestApplFile,"add_test.application").
+
+
 
 
 %%
@@ -37,7 +40,6 @@
 start()->
    
     ok=setup(),
-    ok=api_control_test(),
     io:format("Test OK !!! ~p~n",[?MODULE]),
     log_loop([]),
 
@@ -46,7 +48,34 @@ start()->
     ok.
 
 
+%% --------------------------------------------------------------------
+%% Function: available_hosts()
+%% Description: Based on hosts.config file checks which hosts are avaible
+%% Returns: List({HostId,Ip,SshPort,Uid,Pwd}
+%% --------------------------------------------------------------------
+setup()->
+    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME,?LINE}]),
 
+    ok=application:start(log),
+    pong=log:ping(),
+    ok=application:start(cmn_server),
+    pong=cmn_server:ping(),
+    ok=application:start(service_discovery),
+    pong=service_discovery:ping(),
+    ok=application:start(connect),
+    pong=connect:ping(),
+    ok=application:start(appl_server),
+    pong=appl_server:ping(),
+    ok=application:start(control_server),
+    pong=control_server:ping(),
+
+    service_discovery:config_needed([?TestApplFile]),
+    service_discovery:update(),
+    timer:sleep(5000),
+    {ok,App}=appl_server:app(?TestApplFile),
+    {error,["undefined",add_test]}=client:server_pid(App),
+    
+    ok.
 
 
 %% --------------------------------------------------------------------
@@ -83,26 +112,7 @@ api_control_test()->
     ]=connect:connect_status(),
     ok.
 
-%% --------------------------------------------------------------------
-%% Function: available_hosts()
-%% Description: Based on hosts.config file checks which hosts are avaible
-%% Returns: List({HostId,Ip,SshPort,Uid,Pwd}
-%% --------------------------------------------------------------------
-setup()->
-    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME,?LINE}]),
 
-    ok=application:start(log),
-    pong=log:ping(),
-    ok=application:start(cmn_server),
-    pong=cmn_server:ping(),
-    ok=application:start(service_discovery),
-    pong=service_discovery:ping(),
-    ok=application:start(connect),
-    pong=connect:ping(),
-    ok=application:start(control_server),
-    pong=control_server:ping(),
-    
-    ok.
 
 
 %% --------------------------------------------------------------------

@@ -2,7 +2,8 @@
 %%% @author c50 <joq62@c50>
 %%% @copyright (C) 2024, c50
 %%% @doc
-%%%
+%%% Control is securing that the host is reaching wanted state
+%%% Supports the developer and operator with cluster/node/application status
 %%% @end
 %%% Created : 21 Dec 2024 by c50 <joq62@c50>
 %%%-------------------------------------------------------------------
@@ -14,7 +15,11 @@
 -include("log.api").
 %% API
 
--export([]).
+-export([
+	 is_wanted_state/0,
+
+	 update/0
+	]).
 
 -export([
 	 ping/0,
@@ -26,12 +31,33 @@
 	 terminate/2, code_change/3, format_status/2]).
 
 -define(SERVER, ?MODULE).
+-define(LoopTime,30*1000).
 
 -record(state, {}).
 
 %%%===================================================================
 %%% API
 %%%===================================================================
+
+%%--------------------------------------------------------------------
+%% @doc
+%% 
+%% @end
+%%--------------------------------------------------------------------
+-spec is_wanted_state() -> {ok,WantedState::boolean(),[MissingApplication::string()]}.
+is_wanted_state() ->
+    gen_server:call(?SERVER,{is_wanted_state},infinity).
+
+
+%%--------------------------------------------------------------------
+%% @doc
+%% 
+%% @end
+%%--------------------------------------------------------------------
+-spec update() -> ok.
+update()-> 
+    gen_server:cast(?SERVER, {update}).
+
 %%--------------------------------------------------------------------
 %% @doc
 %% Ping
@@ -70,6 +96,23 @@ start_link() ->
 	  ignore.
 init([]) ->
     process_flag(trap_exit, true),
+    R=case rpc:call(node(),lib_control_server,update,[],?LoopTime-1000) of
+	  {badrpc,timeout}->
+	      ?LOG_WARNING("badrpc Timeout when updating ",[]),
+	      {badrpc,timeout};
+	  {badrpc,Reason}->
+	      ?LOG_WARNING("badrpc Reason when updating ",[Reason]),
+	      {badrpc,Reason};
+	  ok->
+	      ok;
+	  {ok,UpdateInfo}->
+	      ?LOG_NOTICE("Update info ",[UpdateInfo]),
+	      {ok,UpdateInfo}
+      end,
+    io:format("DBG Update result ~p~n",[{R,?MODULE,?LINE}]),
+    spawn(fun()->update_loop() end),
+    
+    
     {ok, #state{}}.
 
 %%--------------------------------------------------------------------
@@ -88,6 +131,11 @@ init([]) ->
 	  {stop, Reason :: term(), Reply :: term(), NewState :: term()} |
 	  {stop, Reason :: term(), NewState :: term()}.
 
+
+
+handle_call({is_wanted_state}, _From, State) ->
+    Reply = lib_control_server:is_wanted_state(),
+    {reply, Reply, State};
 
 
 handle_call({ping}, _From, State) ->
@@ -109,6 +157,26 @@ handle_call(Request, _From, State) ->
 	  {noreply, NewState :: term(), Timeout :: timeout()} |
 	  {noreply, NewState :: term(), hibernate} |
 	  {stop, Reason :: term(), NewState :: term()}.
+
+handle_cast({update}, State) ->
+    io:format("DBG update ~p~n",[{?MODULE,?LINE}]),
+    R=case rpc:call(node(),lib_control_server,update,[],?LoopTime-1000) of
+	  {badrpc,timeout}->
+	      ?LOG_WARNING("badrpc Timeout when updating ",[]),
+	      {badrpc,timeout};
+	  {badrpc,Reason}->
+	      ?LOG_WARNING("badrpc Reason when updating ",[Reason]),
+	      {badrpc,Reason};
+	  ok->
+	      ok;
+	  {ok,UpdateInfo}->
+	      ?LOG_NOTICE("Update info ",[UpdateInfo]),
+	      {ok,UpdateInfo}
+      end,
+    io:format("DBG Update result ~p~n",[{R,?MODULE,?LINE}]),
+    spawn(fun()->update_loop() end),
+    {noreply, State};
+
 handle_cast(_Request, State) ->
     {noreply, State}.
 
@@ -180,3 +248,6 @@ format_status(_Opt, Status) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+update_loop()->
+    timer:sleep(?LoopTime),
+    rpc:cast(node(),?MODULE,update,[]).
