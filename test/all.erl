@@ -23,6 +23,8 @@
 
 -define(TestApplFile,"add_test.application").
 
+-define(TestApplTag,add_test).
+
 
 
 
@@ -56,6 +58,8 @@ start()->
 setup()->
     io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME,?LINE}]),
 
+    
+
     ok=application:start(log),
     pong=log:ping(),
     ok=application:start(cmn_server),
@@ -69,11 +73,11 @@ setup()->
     ok=application:start(control_server),
     pong=control_server:ping(),
 
-    service_discovery:config_needed([?TestApplFile]),
+    service_discovery:config_needed([?TestApplTag]),
     service_discovery:update(),
     timer:sleep(5000),
     {ok,App}=appl_server:app(?TestApplFile),
-    {error,["undefined",add_test]}=client:server_pid(App),
+    {ok,_ServerPid}=client:server_pid(App),
     
     ok.
 

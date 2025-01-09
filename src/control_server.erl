@@ -109,7 +109,6 @@ init([]) ->
 	      ?LOG_NOTICE("Update info ",[UpdateInfo]),
 	      {ok,UpdateInfo}
       end,
-    io:format("DBG Update result ~p~n",[{R,?MODULE,?LINE}]),
     spawn(fun()->update_loop() end),
     
     
@@ -159,7 +158,6 @@ handle_call(Request, _From, State) ->
 	  {stop, Reason :: term(), NewState :: term()}.
 
 handle_cast({update}, State) ->
-    io:format("DBG update ~p~n",[{?MODULE,?LINE}]),
     R=case rpc:call(node(),lib_control_server,update,[],?LoopTime-1000) of
 	  {badrpc,timeout}->
 	      ?LOG_WARNING("badrpc Timeout when updating ",[]),
@@ -173,7 +171,6 @@ handle_cast({update}, State) ->
 	      ?LOG_NOTICE("Update info ",[UpdateInfo]),
 	      {ok,UpdateInfo}
       end,
-    io:format("DBG Update result ~p~n",[{R,?MODULE,?LINE}]),
     spawn(fun()->update_loop() end),
     {noreply, State};
 

@@ -12,6 +12,7 @@ all:
 	rm -rf *_container;
 	rm -rf tar_dir;
 	rm -rf application_specs;
+	rm -rf add_test;
 	#INFO: Compile application
 	rm -rf common_include;
 	cp -r ~/erlang/common_include .
@@ -36,6 +37,7 @@ clean:
 	rm -rf *_container;
 	rm -rf tar_dir;
 	rm -rf application_specs;
+	rm -rf add_test;
 	#INFO: Compile application
 	rm -rf common_include;
 	cp -r ~/erlang/common_include .

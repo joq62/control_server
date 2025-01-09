@@ -44,7 +44,7 @@ update([ApplicationSpecFile|T],Acc)->
 		       {ok,ApplNode} ->
 			   case net_kernel:connect_node(ApplNode) of
 			       false->
-				   [{error,["Failed to connect",ApplNode,ApplicationSpecFile]}|Acc];
+				   [{error,["Failed to connect",ApplicationSpecFile,ApplNode]}|Acc];
 			       true->
 				   [{ok,ApplicationSpecFile,ApplNode}|Acc]
 			   end
@@ -67,9 +67,6 @@ is_wanted_state()->
     SortedWantedApplicationSpecFiles=lists:sort(WantedApplicationSpecFiles),
     Missing=[ApplicationSpecFile||ApplicationSpecFile<-SortedWantedApplicationSpecFiles,
 				  false=:=lists:member(ApplicationSpecFile,SortedActiveApplicationSpecFiles)],
-    io:format("Missing ~p~n",[{Missing,?MODULE,?FUNCTION_NAME,?LINE}]),
-    
-
     case Missing of
 	[]->
 	    {true,[]};
