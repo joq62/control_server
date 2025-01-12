@@ -17,7 +17,6 @@
 
 -export([
 	 is_wanted_state/0,
-
 	 update/0
 	]).
 
@@ -168,10 +167,11 @@ handle_cast({update}, State) ->
 	  ok->
 	      ok;
 	  {ok,UpdateInfo}->
-	      ?LOG_NOTICE("Update info ",[UpdateInfo]),
+	      ?LOG_NOTICE("Update info ",UpdateInfo),
 	      {ok,UpdateInfo}
       end,
     spawn(fun()->update_loop() end),
+    
     {noreply, State};
 
 handle_cast(_Request, State) ->
