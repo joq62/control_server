@@ -32,7 +32,9 @@
 -define(SERVER, ?MODULE).
 -define(LoopTime,30*1000).
 
--record(state, {}).
+-record(state, {
+		update_status
+	       }).
 
 %%%===================================================================
 %%% API
@@ -95,23 +97,25 @@ start_link() ->
 	  ignore.
 init([]) ->
     process_flag(trap_exit, true),
-    R=case rpc:call(node(),lib_control_server,update,[],?LoopTime-1000) of
-	  {badrpc,timeout}->
-	      ?LOG_WARNING("badrpc Timeout when updating ",[]),
-	      {badrpc,timeout};
-	  {badrpc,Reason}->
-	      ?LOG_WARNING("badrpc Reason when updating ",[Reason]),
-	      {badrpc,Reason};
-	  ok->
-	      ok;
-	  {ok,UpdateInfo}->
-	      ?LOG_NOTICE("Update info ",[UpdateInfo]),
-	      {ok,UpdateInfo}
-      end,
+    UpdateStatus=case rpc:call(node(),lib_control_server,update,[],?LoopTime-1000) of
+		     {badrpc,timeout}->
+			 ?LOG_WARNING("badrpc Timeout when updating ",[]),
+			 {badrpc,timeout};
+		     {badrpc,Reason}->
+			 ?LOG_WARNING("badrpc Reason when updating ",[Reason]),
+			 {badrpc,Reason};
+		     ok->
+			 ok;
+		     {ok,UpdateInfo}->
+			 SortedUpdateInfo=lists:sort(UpdateInfo),
+			 ?LOG_NOTICE("Update info ",[SortedUpdateInfo]),
+			 SortedUpdateInfo
+		 end,
     spawn(fun()->update_loop() end),
     
     
-    {ok, #state{}}.
+    {ok, #state{
+	   update_status=UpdateStatus}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -157,22 +161,28 @@ handle_call(Request, _From, State) ->
 	  {stop, Reason :: term(), NewState :: term()}.
 
 handle_cast({update}, State) ->
-    R=case rpc:call(node(),lib_control_server,update,[],?LoopTime-1000) of
-	  {badrpc,timeout}->
-	      ?LOG_WARNING("badrpc Timeout when updating ",[]),
-	      {badrpc,timeout};
-	  {badrpc,Reason}->
-	      ?LOG_WARNING("badrpc Reason when updating ",[Reason]),
-	      {badrpc,Reason};
-	  ok->
-	      ok;
-	  {ok,UpdateInfo}->
-	      ?LOG_NOTICE("Update info ",UpdateInfo),
-	      {ok,UpdateInfo}
-      end,
+    UpdateStatus=case rpc:call(node(),lib_control_server,update,[],?LoopTime-1000) of
+	       {badrpc,timeout}->
+		   ?LOG_WARNING("badrpc Timeout when updating ",[]),
+		   {badrpc,timeout};
+	       {badrpc,Reason}->
+		   ?LOG_WARNING("badrpc Reason when updating ",[Reason]),
+		   {badrpc,Reason};
+	       ok->
+		   State#state.update_status;
+	       {ok,UpdateInfo}->
+		   SortedUpdateInfo=lists:sort(UpdateInfo),
+		   if
+		       SortedUpdateInfo=/=State#state.update_status->
+			   ?LOG_NOTICE("Update info ",SortedUpdateInfo),
+			   SortedUpdateInfo;
+		       true->
+			   State#state.update_status
+		   end
+	   end,
     spawn(fun()->update_loop() end),
-    
-    {noreply, State};
+    NewState=State#state{update_status=UpdateStatus},
+    {noreply, NewState};
 
 handle_cast(_Request, State) ->
     {noreply, State}.
