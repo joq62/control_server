@@ -173,7 +173,7 @@ handle_cast({update}, State) ->
 	       {ok,UpdateInfo}->
 		   SortedUpdateInfo=lists:sort(UpdateInfo),
 		   if
-		       SortedUpdateInfo=/=State#state.update_status->
+		       SortedUpdateInfo =:= State#state.update_status->
 			   ?LOG_NOTICE("Update info ",SortedUpdateInfo),
 			   SortedUpdateInfo;
 		       true->

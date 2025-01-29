@@ -75,7 +75,7 @@ setup()->
 
     service_discovery:config_needed([?TestApplTag]),
     service_discovery:update(),
-    timer:sleep(5000),
+    timer:sleep(3*5000),
     {ok,App}=appl_server:app(?TestApplFile),
     {ok,_ServerPid}=client:server_pid(App),
     
